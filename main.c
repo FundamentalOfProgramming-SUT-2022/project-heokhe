@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
+#define ROOT "root"
+
 bool is_equal(char* a, char* b) {
   return !strcmp(a, b);
 }
@@ -33,7 +35,7 @@ int create_file(char* address) {
     if (i == 0 && current != '/') return 2;
 
     if (current == '/') {
-      if (segment_index == 0 && !is_equal(segment, "root")) {
+      if (segment_index == 0 && !is_equal(segment, ROOT)) {
         return 1;
       }
 
