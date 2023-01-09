@@ -35,3 +35,33 @@ char* read_clipboard() {
   pclose(temp_file);
   return thing;
 }
+
+char* convert_backspaces(char* str) {
+  int len = strlen(str);
+  char* new_str = malloc(sizeof(char) * len);
+  bool prev_is_backslash = false;
+  for (int i = 0; i < len; i++) {
+    char current = str[i];
+    if (current == '\\') {
+      if (prev_is_backslash) {
+        strncat(new_str, "\\", 1);
+        prev_is_backslash = false;
+      }
+      else {
+        prev_is_backslash = true;
+      }
+    }
+    else if (current == 'n' && prev_is_backslash) {
+      strncat(new_str, "\n", 1);
+      prev_is_backslash = false;
+    }
+    else {
+      if (prev_is_backslash) {
+        strncat(new_str, "\\", 1);
+        prev_is_backslash = false;
+      }
+      strncat(new_str, &current, 1);
+    }
+  }
+  return new_str;
+}

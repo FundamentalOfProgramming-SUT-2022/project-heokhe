@@ -90,6 +90,7 @@ void insert(char* address, int line, int col, char* thing) {
   }
 
   // write the new stuff
+  thing = convert_backspaces(thing);
   strncat(new_contents, thing, strlen(thing));
 
   // and finally, anything that comes after the wanted position
