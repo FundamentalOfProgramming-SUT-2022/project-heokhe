@@ -66,6 +66,49 @@ char* cat(char* address) {
 
   return contents;
 }
+
+void insert(char* address, int line, int col, char* thing) {
+  // lines start from 1, but we don't want that
+  line--;
+
+  char* new_contents = malloc(sizeof(char) * 1e4);
+  FILE* file = fopen(remove_leading_slash(address), "r+");
+
+  // every line before the wanted line
+  for (int i = 0; i < line; i++) {
+    for (;;) {
+      char ch = fgetc(file);
+      strncat(new_contents, &ch, 1);
+      if (ch == '\n') break;
+    }
+  }
+
+  // at the wanted line, befoe the wanted column
+  for (int i = 0; i < col; i++) {
+    char ch = fgetc(file);
+    strncat(new_contents, &ch, 1);
+  }
+
+  // write the new stuff
+  strncat(new_contents, thing, strlen(thing));
+
+  // and finally, anything that comes after the wanted position
+  char ch;
+  while ((ch = fgetc(file)) != EOF) {
+    strncat(new_contents, &ch, 1);
+  }
+
+  // end the read operation
+  fclose(file);
+
+  // clear the file
+  file = fopen(remove_leading_slash(address), "w");
+
+  // write the new contents
+  fprintf(file, "%s", new_contents);
+  fclose(file);
+}
+
 int main(int argc, char* argv[]) {
   char* command = argv[1];
   if (is_equal(command, "createfile")) {
@@ -92,5 +135,15 @@ int main(int argc, char* argv[]) {
     char* address = argv[3];
     char* contents = cat(address);
     printf("%s", contents);
+  }
+
+  if (is_equal(command, "insert")) {
+    char* address = argv[3];
+    char* str = argv[5];
+    char* pos = argv[7];
+    int line = atoi(strtok(pos, ":"));
+    int col = atoi(strtok(NULL, ":"));
+    insert(address, line, col, str);
+    printf("Insertion done \n");
   }
 }
