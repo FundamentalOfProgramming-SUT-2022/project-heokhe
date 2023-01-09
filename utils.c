@@ -24,3 +24,14 @@ char* remove_leading_slash(char* address) {
   return output;
 }
 
+char* read_clipboard() {
+  FILE* temp_file = popen("pbpaste", "r");
+  char* thing = malloc(sizeof(char) * 1e4);
+
+  char ch;
+  while ((ch = fgetc(temp_file)) != EOF) {
+    strncat(thing, &ch, 1);
+  }
+  pclose(temp_file);
+  return thing;
+}

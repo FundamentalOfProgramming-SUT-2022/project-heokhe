@@ -109,6 +109,10 @@ void insert(char* address, int line, int col, char* thing) {
   fclose(file);
 }
 
+void paste(char* address, int line, int col) {
+  return insert(address, line, col, read_clipboard());
+}
+
 int main(int argc, char* argv[]) {
   char* command = argv[1];
   if (is_equal(command, "createfile")) {
@@ -145,5 +149,14 @@ int main(int argc, char* argv[]) {
     int col = atoi(strtok(NULL, ":"));
     insert(address, line, col, str);
     printf("Insertion done \n");
+  }
+
+  if (is_equal(command, "paste")) {
+    char* address = argv[3];
+    char* pos = argv[5];
+    int line = atoi(strtok(pos, ":"));
+    int col = atoi(strtok(NULL, ":"));
+    paste(address, line, col);
+    printf("Pasted \n");
   }
 }
