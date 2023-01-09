@@ -83,4 +83,14 @@ int main(int argc, char* argv[]) {
       printf("Failed to create %s \n", address);
     }
   }
+
+  if (is_equal(command, "cat")) {
+    if (!is_equal(argv[2], "--file")) {
+      printf("invalid format");
+      return 0;
+    }
+    char* address = argv[3];
+    char* contents = cat(address);
+    printf("%s", contents);
+  }
 }
