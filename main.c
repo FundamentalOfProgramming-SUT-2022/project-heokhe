@@ -53,6 +53,19 @@ int create_file(char* address) {
   return 0;
 }
 
+char* cat(char* address) {
+  FILE* file = fopen(remove_leading_slash(address), "r");
+
+  char* contents = malloc(sizeof(char) * 1e6);
+  char ch;
+  while ((ch = fgetc(file)) != EOF) {
+    strncat(contents, &ch, 1);
+  }
+
+  fclose(file);
+
+  return contents;
+}
 int main(int argc, char* argv[]) {
   char* command = argv[1];
   if (is_equal(command, "createfile")) {
