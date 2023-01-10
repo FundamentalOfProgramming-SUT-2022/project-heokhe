@@ -134,6 +134,27 @@ void removestr(char* address, int line, int col, int size, bool backward) {
   fclose(file);
 }
 
+void copy(char* address, int line, int col, int size, bool backward) {
+  line--;
+
+  char* contents = cat(address);
+  char selected[size];
+  int index = get_index_of_pos(contents, line, col);
+  if (backward) {
+    index -= size;
+  }
+
+  for (int i = 0; i < size; i++)
+    selected[i] = contents[i + index];
+
+  write_to_clipboard(selected);
+}
+
+void cut(char* address, int line, int col, int size, bool backward) {
+  copy(address, line, col, size, backward);
+  removestr(address, line, col, size, backward);
+}
+
 int main(int argc, char* argv[]) {
   char* command = argv[1];
   if (is_equal(command, "createfile")) {
@@ -184,5 +205,18 @@ int main(int argc, char* argv[]) {
     bool backward = is_equal(argv[8], "-b");
     removestr(address, pos[0], pos[1], size, backward);
     printf("Removed \n");
+  }
+
+  if (is_equal(command, "copy") || is_equal(command, "cut")) {
+    char* address = argv[3];
+    int* pos = parse_pos(argv[5]);
+    int size = atoi(argv[7]);
+    bool backward = is_equal(argv[8], "-b");
+    if (is_equal(command, "copy")) {
+      copy(address, pos[0], pos[1], size, backward);
+    }
+    else {
+      cut(address, pos[0], pos[1], size, backward);
+    }
   }
 }
