@@ -38,7 +38,7 @@ char* read_clipboard() {
 
 void write_to_clipboard(char* str) {
   char command[10000];
-  sprintf(command, "echo \"%s\" | pbcopy", str);
+  sprintf(command, "printf \"%s\" | pbcopy", str);
   system(command);
 }
 
