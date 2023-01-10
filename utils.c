@@ -36,6 +36,12 @@ char* read_clipboard() {
   return thing;
 }
 
+void write_to_clipboard(char* str) {
+  char command[10000];
+  sprintf(command, "echo \"%s\" | pbcopy", str);
+  system(command);
+}
+
 char* convert_backspaces(char* str) {
   int len = strlen(str);
   char* new_str = malloc(sizeof(char) * len);
@@ -66,10 +72,23 @@ char* convert_backspaces(char* str) {
   return new_str;
 }
 
+int get_index_of_pos(char* str, int line, int col) {
+  int i = 0, current_line = 0;
+  while (true) {
+    char ch = str[i];
+    if (ch == '\n') {
+      current_line++;
+    }
+    if (current_line == line) break;
+    i++;
+  }
+  return i + col;
+}
+
 int* parse_pos(char* pos) {
   int line = atoi(strtok(pos, ":"));
   int col = atoi(strtok(NULL, ":"));
-  int* ptr;
+  int* ptr = malloc(2 * sizeof(int));
   *(ptr + 0) = line;
   *(ptr + 1) = col;
   return ptr;
