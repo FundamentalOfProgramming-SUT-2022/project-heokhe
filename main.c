@@ -114,6 +114,26 @@ void paste(char* address, int line, int col) {
   return insert(address, line, col, read_clipboard());
 }
 
+void removestr(char* address, int line, int col, int size, bool backward) {
+  // For the love of all that's holy
+  line--;
+
+  char* contents = cat(address);
+  int index = get_index_of_pos(contents, line, col);
+
+  for (int i = 0; i < size; i++) {
+    if (backward) {
+      memmove(&contents[index - size + 1], &contents[index - size + 2], strlen(contents) - index + size - 1);
+    }
+    else {
+      memmove(&contents[index], &contents[index + 1], strlen(contents) - index);
+    }
+  }
+  FILE* file = fopen(remove_leading_slash(address), "w");
+  fprintf(file, "%s", contents);
+  fclose(file);
+}
+
 int main(int argc, char* argv[]) {
   char* command = argv[1];
   if (is_equal(command, "createfile")) {
@@ -155,5 +175,14 @@ int main(int argc, char* argv[]) {
     int* pos = parse_pos(argv[5]);
     paste(address, pos[0], pos[1]);
     printf("Pasted \n");
+  }
+
+  if (is_equal(command, "remove")) {
+    char* address = argv[3];
+    int* pos = parse_pos(argv[5]);
+    int size = atoi(argv[7]);
+    bool backward = is_equal(argv[8], "-b");
+    removestr(address, pos[0], pos[1], size, backward);
+    printf("Removed \n");
   }
 }
