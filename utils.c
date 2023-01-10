@@ -65,3 +65,12 @@ char* convert_backspaces(char* str) {
   }
   return new_str;
 }
+
+int* parse_pos(char* pos) {
+  int line = atoi(strtok(pos, ":"));
+  int col = atoi(strtok(NULL, ":"));
+  int* ptr;
+  *(ptr + 0) = line;
+  *(ptr + 1) = col;
+  return ptr;
+}

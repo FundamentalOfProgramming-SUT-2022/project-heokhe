@@ -145,19 +145,15 @@ int main(int argc, char* argv[]) {
   if (is_equal(command, "insert")) {
     char* address = argv[3];
     char* str = argv[5];
-    char* pos = argv[7];
-    int line = atoi(strtok(pos, ":"));
-    int col = atoi(strtok(NULL, ":"));
-    insert(address, line, col, str);
+    int* pos = parse_pos(argv[7]);
+    insert(address, pos[0], pos[1], str);
     printf("Insertion done \n");
   }
 
   if (is_equal(command, "paste")) {
     char* address = argv[3];
-    char* pos = argv[5];
-    int line = atoi(strtok(pos, ":"));
-    int col = atoi(strtok(NULL, ":"));
-    paste(address, line, col);
+    int* pos = parse_pos(argv[5]);
+    paste(address, pos[0], pos[1]);
     printf("Pasted \n");
   }
 }
