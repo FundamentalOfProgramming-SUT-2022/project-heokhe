@@ -67,6 +67,15 @@ char* cat(char* address) {
   return contents;
 }
 
+void write_with_history(char* address, char* content) {
+  write_to_file(get_prev_version_name(address), cat(address));
+  write_to_file(address, content);
+}
+
+void undo(char* address) {
+  write_with_history(address, cat(get_prev_version_name(address)));
+}
+
 void insert(char* address, int line, int col, char* thing) {
   // lines start from 1, but we don't want that
   line--;
@@ -102,12 +111,8 @@ void insert(char* address, int line, int col, char* thing) {
   // end the read operation
   fclose(file);
 
-  // clear the file
-  file = fopen(remove_leading_slash(address), "w");
-
-  // write the new contents
-  fprintf(file, "%s", new_contents);
-  fclose(file);
+  // write to the file
+  write_with_history(address, new_contents);
 }
 
 void paste(char* address, int line, int col) {
@@ -129,9 +134,8 @@ void removestr(char* address, int line, int col, int size, bool backward) {
       memmove(&contents[index], &contents[index + 1], strlen(contents) - index);
     }
   }
-  FILE* file = fopen(remove_leading_slash(address), "w");
-  fprintf(file, "%s", contents);
-  fclose(file);
+
+  write_with_history(address, contents);
 }
 
 void copy(char* address, int line, int col, int size, bool backward) {
@@ -218,5 +222,10 @@ int main(int argc, char* argv[]) {
     else {
       cut(address, pos[0], pos[1], size, backward);
     }
+  }
+
+  if (is_equal(command, "undo")) {
+    undo(argv[3]);
+    printf("(Un)done \n");
   }
 }

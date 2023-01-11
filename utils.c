@@ -93,3 +93,23 @@ int* parse_pos(char* pos) {
   *(ptr + 1) = col;
   return ptr;
 }
+
+
+void write_to_file(char* address, char* content) {
+  address = remove_leading_slash(address);
+  FILE* file = fopen(address, "w");
+  fprintf(file, "%s", content);
+  fclose(file);
+}
+
+char* get_prev_version_name(char* address) {
+  int len = strlen(address);
+  int history_name_len = len + 100;
+  char* history_file_address = malloc(history_name_len * sizeof(char));
+  for (int i = 0; i < len; i++) {
+    history_file_address[i] = address[i];
+  }
+  const char* suffix = ".history";
+  strncat(history_file_address, suffix, strlen(suffix));
+  return history_file_address;
+}
