@@ -127,12 +127,7 @@ void removestr(char* address, int line, int col, int size, bool backward) {
   int index = get_index_of_pos(contents, line, col);
 
   for (int i = 0; i < size; i++) {
-    if (backward) {
-      memmove(&contents[index - size + 1], &contents[index - size + 2], strlen(contents) - index + size - 1);
-    }
-    else {
-      memmove(&contents[index], &contents[index + 1], strlen(contents) - index);
-    }
+    remove_index(contents, backward ? (index - size + 1) : index);
   }
 
   write_with_history(address, contents);

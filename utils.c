@@ -94,6 +94,9 @@ int* parse_pos(char* pos) {
   return ptr;
 }
 
+void remove_index(char* str, int index) {
+  memmove(&str[index], &str[index + 1], strlen(str) - index);
+}
 
 void write_to_file(char* address, char* content) {
   address = remove_leading_slash(address);
