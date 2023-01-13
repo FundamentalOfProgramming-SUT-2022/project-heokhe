@@ -154,32 +154,84 @@ void cut(char* address, int line, int col, int size, bool backward) {
   removestr(address, line, col, size, backward);
 }
 
-int main(int argc, char* argv[]) {
+char* result(uint8_t code, char* output) {
+  char* r = malloc(sizeof(output) + sizeof(char));
+  r[0] = code + 1; // since we can't store zero in a string
+  strncat(r, output, strlen(output));
+  return r;
+}
+
+#define ok(msg) result(0, msg)
+
+char* handle(int argc, char* argv[]);
+
+char* arman(int arman_index, int argc, char* argv[]) {
+  int left_argc = arman_index;
+  int right_argc = argc - arman_index;
+  char* left_argv[left_argc];
+  char* right_argv[right_argc];
+  left_argv[0] = argv[0];
+  right_argv[0] = argv[0];
+  for (int i = 1; i < left_argc; i++) {
+    left_argv[i] = argv[i];
+  }
+  for (int i = 1; i < right_argc; i++) {
+    right_argv[i] = argv[i + arman_index];
+  }
+
+  char* left_output = handle(left_argc, left_argv);
+  if ((int)left_output[0] != 1) {
+    return left_output;
+  }
+  remove_index(left_output, 0);
+
+  right_argc += 2;
+  for (int i = right_argc; i > 5; i--) {
+    right_argv[i] = right_argv[i - 2];
+  }
+  right_argv[4] = "--str";
+  right_argv[5] = left_output;
+
+  char* right_output = handle(right_argc, right_argv);
+  return right_output;
+}
+
+char* handle(int argc, char* argv[]) {
+  int arman_index = -1;
+  for (int i = 0; i < argc; i++) {
+    if (is_equal(argv[i], "=D")) {
+      arman_index = i;
+      break;
+    }
+  }
+
+  if (arman_index != -1) {
+    return arman(arman_index, argc, argv);
+  }
+
   char* command = argv[1];
   if (is_equal(command, "createfile")) {
     if (!is_equal(argv[2], "--file")) {
-      printf("invalid format");
-      return 0;
+      return result(1, "invalid format");
     }
     char* address = argv[3];
     int status = create_file(address);
     if (!status) {
-      printf("Created %s \n", address);
+      return ok("");
     }
     else {
       // TODO: give an actual explanation
-      printf("Failed to create %s \n", address);
+      return result(2, "");
     }
   }
 
   if (is_equal(command, "cat")) {
     if (!is_equal(argv[2], "--file")) {
-      printf("invalid format");
-      return 0;
+      return result(1, "invalid format");
     }
     char* address = argv[3];
     char* contents = cat(address);
-    printf("%s", contents);
+    return ok(contents);
   }
 
   if (is_equal(command, "insert")) {
@@ -187,14 +239,14 @@ int main(int argc, char* argv[]) {
     char* str = argv[5];
     int* pos = parse_pos(argv[7]);
     insert(address, pos[0], pos[1], str);
-    printf("Insertion done \n");
+    return ok("");
   }
 
   if (is_equal(command, "paste")) {
     char* address = argv[3];
     int* pos = parse_pos(argv[5]);
     paste(address, pos[0], pos[1]);
-    printf("Pasted \n");
+    return ok("");
   }
 
   if (is_equal(command, "remove")) {
@@ -203,7 +255,7 @@ int main(int argc, char* argv[]) {
     int size = atoi(argv[7]);
     bool backward = is_equal(argv[8], "-b");
     removestr(address, pos[0], pos[1], size, backward);
-    printf("Removed \n");
+    return ok("");
   }
 
   if (is_equal(command, "copy") || is_equal(command, "cut")) {
@@ -217,10 +269,23 @@ int main(int argc, char* argv[]) {
     else {
       cut(address, pos[0], pos[1], size, backward);
     }
+    return ok("");
   }
 
   if (is_equal(command, "undo")) {
     undo(argv[3]);
-    printf("(Un)done \n");
+    return ok("");
   }
+
+  return result(3, "");
+}
+
+int main(int argc, char* argv[]) {
+  char* res = handle(argc, argv);
+  int status = res[0] - 1; // status code starts from zero
+  remove_index(res, 0);
+  if (strlen(res)) {
+    printf("%s\n", res);
+  }
+  return status;
 }
