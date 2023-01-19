@@ -15,6 +15,7 @@ bool _exists(char* address) {
 }
 
 char* remove_leading_slash(char* address) {
+  if (address[0] != '/') return address;
   int len = strlen(address);
   char* output = malloc(sizeof(char) * len);
   for (int i = 1; i < len; i++) {
