@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <dirent.h>
 #include "utils.c"
 
 #define ROOT "root"
@@ -196,6 +197,38 @@ char* arman(int arman_index, int argc, char* argv[]) {
   return right_output;
 }
 
+char* tree(char* address, int depth, int max_depth) {
+  address = remove_leading_slash(address);
+
+  char* o = malloc(sizeof(char) * 1e5);
+
+  DIR* directory = opendir(address);
+  struct dirent* file;
+  while ((file = readdir(directory)) != NULL) {
+    char name[file->d_namlen];
+    strcpy(name, file->d_name);
+    if (is_equal(name, ".") || is_equal(name, "..")) continue;
+
+    char* file_address = malloc(sizeof(char) * 200);
+    strncat(file_address, address, strlen(address));
+    strncat(file_address, "/", 1);
+    strncat(file_address, name, strlen(name));
+
+    for (int i = 0; i < depth - 1; i++) strncat(o, "  ", 2);
+    if (depth > 0) strncat(o, "└─", 6);
+
+    strcat(o, file_address);
+    strncat(o, "\n", 1);
+
+    bool next_depth_is_allowed = max_depth == -1 || depth < max_depth;
+    if (next_depth_is_allowed && is_directory(file_address)) {
+      strcat(o, tree(file_address, depth + 1, max_depth));
+    }
+  }
+  closedir(directory);
+  return o;
+}
+
 char* handle(int argc, char* argv[]) {
   int arman_index = -1;
   for (int i = 0; i < argc; i++) {
@@ -275,6 +308,12 @@ char* handle(int argc, char* argv[]) {
   if (is_equal(command, "undo")) {
     undo(argv[3]);
     return ok("");
+  }
+
+  if (is_equal(command, "tree")) {
+    int max_depth = atoi(argv[2]);
+    if (max_depth < -1) return result(1, "Depth should be at least -1");
+    return ok(tree(ROOT, 0, max_depth));
   }
 
   return result(3, "");

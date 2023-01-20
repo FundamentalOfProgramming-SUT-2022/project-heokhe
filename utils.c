@@ -14,6 +14,12 @@ bool _exists(char* address) {
   return stat(address, &st) != -1;
 }
 
+bool is_directory(char* address) {
+  struct stat st;
+  stat(address, &st);
+  return S_ISDIR(st.st_mode);
+}
+
 char* remove_leading_slash(char* address) {
   if (address[0] != '/') return address;
   int len = strlen(address);
