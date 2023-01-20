@@ -116,10 +116,10 @@ char* get_prev_version_name(char* address) {
   int len = strlen(address);
   int history_name_len = len + 100;
   char* history_file_address = malloc(history_name_len * sizeof(char));
-  for (int i = 0; i < len; i++) {
-    history_file_address[i] = address[i];
+  strcat(history_file_address, ".undo_history");
+  strcat(history_file_address, address);
+  for (int i = 0; i < 5; i++) {
+    remove_index(history_file_address, 13);
   }
-  const char* suffix = ".history";
-  strncat(history_file_address, suffix, strlen(suffix));
   return history_file_address;
 }
