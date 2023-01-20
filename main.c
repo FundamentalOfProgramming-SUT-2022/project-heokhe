@@ -229,6 +229,62 @@ char* tree(char* address, int depth, int max_depth) {
   return o;
 }
 
+int find(char* address, char* expression, int at, bool byword, bool only_count) {
+  char* contents = cat(address);
+  int len = strlen(contents), ex_len = strlen(expression);
+  int index = -1, word_index = -1;
+  int count = 0, matched_count = 0;
+
+  bool begins_with_wildcard = false, ends_with_wildcard = false;
+  if (expression[0] == '*') {
+    begins_with_wildcard = true;
+    remove_index(expression, 0);
+    ex_len--;
+  }
+  if (expression[ex_len - 1] == '*') {
+    if (expression[ex_len - 2] == '\\') {
+      remove_index(expression, ex_len - 2);
+      ex_len--;
+    }
+    else {
+      ends_with_wildcard = true;
+      remove_index(expression, ex_len - 1);
+      ex_len--;
+    }
+  }
+
+  for (int i = 0, w = 0, ws = 0; i < len; i++) {
+    if (contents[i] == expression[matched_count]) {
+      matched_count++;
+      if (matched_count == ex_len) {
+        if (ends_with_wildcard && (contents[i + 1] == ' ' || i == len - 1)) {
+          matched_count = 0;
+        }
+        else {
+          index = begins_with_wildcard ? ws : (i - ex_len + 1);
+          word_index = w;
+          count++;
+          if (!only_count && at == count - 1) {
+            break;
+          }
+        }
+      }
+    }
+    else {
+      matched_count = 0;
+    }
+
+    if (contents[i] == ' ') {
+      w++;
+      ws = i + 1;
+    }
+  }
+
+  if (only_count) return count;
+  if (at != count - 1) return -1;
+  return byword ? word_index : index;
+}
+
 char* handle(int argc, char* argv[]) {
   int arman_index = -1;
   for (int i = 0; i < argc; i++) {
@@ -314,6 +370,24 @@ char* handle(int argc, char* argv[]) {
     int max_depth = atoi(argv[2]);
     if (max_depth < -1) return result(1, "Depth should be at least -1");
     return ok(tree(ROOT, 0, max_depth));
+  }
+
+  if (is_equal(command, "find")) {
+    char* address = get_argument(argc, argv, "file");
+    char* expression = get_argument(argc, argv, "str");
+    char* at = get_argument(argc, argv, "at");
+    if (is_equal(at, "")) at = "0";
+    bool byword = get_flag(argc, argv, "byword");
+    bool count = get_flag(argc, argv, "count");
+    int output = find(address, expression, atoi(at), byword, count);
+    if (output == -1) {
+      return result(1, "not found");
+    }
+    else {
+      char s[1000];
+      sprintf(s, "%d", output);
+      return ok(s);
+    }
   }
 
   return result(3, "");

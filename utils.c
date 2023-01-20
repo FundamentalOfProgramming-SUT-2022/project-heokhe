@@ -123,3 +123,25 @@ char* get_prev_version_name(char* address) {
   }
   return history_file_address;
 }
+
+bool get_flag(int argc, char* argv[], char* flag) {
+  char with_dashes[100];
+  sprintf(with_dashes, "--%s", flag);
+  for (int i = 2; i < argc; i++) {
+    if (is_equal(argv[i], with_dashes)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+char* get_argument(int argc, char* argv[], char* argument_name) {
+  char with_dashes[100];
+  sprintf(with_dashes, "--%s", argument_name);
+  for (int i = 2; i < argc - 1; i++) {
+    if (is_equal(argv[i], with_dashes)) {
+      return argv[i + 1];
+    }
+  }
+  return "";
+}
