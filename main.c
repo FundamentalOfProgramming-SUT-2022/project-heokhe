@@ -266,6 +266,7 @@ int find(char* address, char* expression, int at, bool byword, bool only_count) 
           index = begins_with_wildcard ? ws : (i - ex_len + 1);
           word_index = w;
           count++;
+          matched_count = 0;
           if (!only_count && at == count - 1) {
             break;
           }
