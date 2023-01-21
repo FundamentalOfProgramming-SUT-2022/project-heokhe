@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include "constants.c"
 
 bool is_equal(char* a, char* b) {
   return !strcmp(a, b);
@@ -116,10 +117,10 @@ char* get_prev_version_name(char* address) {
   int len = strlen(address);
   int history_name_len = len + 100;
   char* history_file_address = malloc(history_name_len * sizeof(char));
-  strcat(history_file_address, ".undo_history");
+  strcat(history_file_address, UNDO_HISTORY);
   strcat(history_file_address, address);
-  for (int i = 0; i < 5; i++) {
-    remove_index(history_file_address, 13);
+  for (int i = 0; i < strlen(ROOT) + 1; i++) {
+    remove_index(history_file_address, strlen(UNDO_HISTORY) + 1);
   }
   return history_file_address;
 }

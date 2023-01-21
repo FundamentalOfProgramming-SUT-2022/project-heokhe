@@ -5,9 +5,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include "constants.c"
 #include "utils.c"
-
-#define ROOT "root"
 
 int create_file(char* address) {
   int len = strlen(address);
