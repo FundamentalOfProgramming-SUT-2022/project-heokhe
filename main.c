@@ -68,6 +68,9 @@ char* cat(char* address) {
 }
 
 void write_with_history(char* address, char* content) {
+  if (!_exists(UNDO_HISTORY)) {
+    mkdir(UNDO_HISTORY, 0700);
+  }
   write_to_file(get_prev_version_name(address), cat(address));
   write_to_file(address, content);
 }
