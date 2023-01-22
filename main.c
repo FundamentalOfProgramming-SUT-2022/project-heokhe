@@ -256,6 +256,8 @@ int find(char* address, char* expression, int at, bool byword, bool only_count) 
   }
 
   for (int i = 0, w = 0, ws = 0; i < len; i++) {
+    if ((begins_with_wildcard || ends_with_wildcard) && matched_count == 0 && w == word_index && i > ws) continue;
+
     if (contents[i] == expression[matched_count]) {
       matched_count++;
       if (matched_count == ex_len) {
@@ -273,6 +275,10 @@ int find(char* address, char* expression, int at, bool byword, bool only_count) 
         }
       }
     }
+    // else if (matched_count > 0 && i && contents[i] == contents[i - 1]) {
+    //   printf("%d?\n", matched_count);
+    //   continue;
+    // }
     else {
       matched_count = 0;
     }
@@ -286,6 +292,25 @@ int find(char* address, char* expression, int at, bool byword, bool only_count) 
   if (only_count) return count;
   if (at != count - 1) return -1;
   return byword ? word_index : index;
+}
+
+int replace(char* address, char* str1, char* str2, int at, bool all) {
+  char* output = malloc(sizeof(char) * 1e6);
+  int index = find(address, str1, at, false, false);
+  if (index == -1) return 1;
+  char* contents = cat(address);
+  int len = strlen(str1);
+  for (int i = 0; i < index; i++) {
+    strncat(output, &contents[i], 1);
+  }
+  for (int i = 0; i < strlen(str2); i++) {
+    strncat(output, &str2[i], 1);
+  }
+  for (int i = index + 1; i < strlen(contents); i++) {
+    strncat(output, &contents[i], 1);
+  }
+  write_with_history(address, output);
+  return 0;
 }
 
 char* handle(int argc, char* argv[]) {
@@ -391,6 +416,16 @@ char* handle(int argc, char* argv[]) {
       sprintf(s, "%d", output);
       return ok(s);
     }
+  }
+
+  if (is_equal(command, "replace")) {
+    char* address = get_argument(argc, argv, "file");
+    char* str1 = get_argument(argc, argv, "str1");
+    char* str2 = get_argument(argc, argv, "str2");
+    char* at = get_argument(argc, argv, "at");
+    bool all = get_flag(argc, argv, "all");
+    if (is_equal(at, "")) at = "0";
+    return result(replace(address, str1, str2, atoi(at), all), "");
   }
 
   return result(3, "");
