@@ -295,6 +295,15 @@ int find(char* address, char* expression, int at, bool byword, bool only_count) 
 }
 
 int replace(char* address, char* str1, char* str2, int at, bool all) {
+  if (all) {
+    while (true) {
+      if (replace(address, str1, str2, 0, false)) {
+        break;
+      }
+    }
+    return 0;
+  }
+
   char* output = malloc(sizeof(char) * 1e6);
   int index = find(address, str1, at, false, false);
   if (index == -1) return 1;
