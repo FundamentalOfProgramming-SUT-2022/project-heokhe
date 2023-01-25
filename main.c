@@ -158,7 +158,7 @@ void cut(char* address, int line, int col, int size, bool backward) {
 }
 
 char* result(uint8_t code, char* output) {
-  char* r = malloc(sizeof(output) + sizeof(char));
+  char* r = malloc(sizeof(char) * (1e6 + 10));
   r[0] = code + 1; // since we can't store zero in a string
   strncat(r, output, strlen(output));
   return r;
