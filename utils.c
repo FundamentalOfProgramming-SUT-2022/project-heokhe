@@ -5,6 +5,12 @@ bool is_equal(char* a, char* b) {
   return !strcmp(a, b);
 }
 
+// appends a formatted string to the end of another string
+char ____aprintf_new[1000000];
+#define aprintf(dest, __VA_ARGS__...) \
+  sprintf(____aprintf_new, __VA_ARGS__);\
+  strncat(dest, ____aprintf_new, 1000000);\
+
 void _touch(char* address) {
   FILE* file_pointer = fopen(address, "w");
   fclose(file_pointer);
@@ -145,4 +151,22 @@ char* get_argument(int argc, char* argv[], char* argument_name) {
     }
   }
   return "";
+}
+
+bool strincludes(char* haystack, char* needle) {
+  int matched_count = 0;
+  int haystack_len = strlen(haystack);
+  int needle_len = strlen(needle);
+  for (int i = 0; i < haystack_len; i++) {
+    if (haystack[i] == needle[matched_count]) {
+      matched_count++;
+      if (matched_count >= needle_len) {
+        return true;
+      }
+    }
+    else {
+      matched_count = 0;
+    }
+  }
+  return false;
 }

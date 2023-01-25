@@ -313,6 +313,57 @@ int replace(char* address, char* str1, char* str2, int at, bool all) {
   return 0;
 }
 
+char* grep(int address_count, char* addresses[], char* pattern, bool count_only, bool names_only) {
+  char* output = malloc(sizeof(char) * 1e7);
+
+  int matched_lines_count = 0;
+  for (int address_index = 0; address_index < address_count; address_index++) {
+    char* address = addresses[address_index];
+    char* address_without_root = address + strlen(ROOT) + 1;
+    if (address[0] == '/') address_without_root++;
+
+    FILE* file = fopen(remove_leading_slash(address), "r");
+    char* line = malloc(sizeof(char) * 1000);
+    bool file_includes_pattern = false;
+
+    char current;
+    while (true) {
+      current = fgetc(file);
+      if (current == '\n' || current == EOF) {
+        if (strincludes(line, pattern)) {
+          matched_lines_count++;
+          file_includes_pattern = true;
+          if (names_only) {
+            break;
+          }
+          if (!count_only && !names_only) {
+            aprintf(output, "%s: %s\n", address_without_root, line);
+          }
+        }
+        memset(line, 0, strlen(line));
+        if (current == EOF) {
+          break;
+        }
+      }
+      else {
+        strncat(line, &current, 1);
+      }
+    }
+
+    if (names_only) {
+      aprintf(output, "%s\n", address_without_root);
+    }
+
+    fclose(file);
+  }
+
+  if (count_only) {
+    aprintf(output, "%d", matched_lines_count);
+  }
+
+  return output;
+}
+
 char* handle(int argc, char* argv[]) {
   int arman_index = -1;
   for (int i = 0; i < argc; i++) {
@@ -426,6 +477,25 @@ char* handle(int argc, char* argv[]) {
     bool all = get_flag(argc, argv, "all");
     if (is_equal(at, "")) at = "0";
     return result(replace(address, str1, str2, atoi(at), all), "");
+  }
+
+  if (is_equal(command, "grep")) {
+    char* addresses[argc];
+    int addresses_count = 0;
+    int flag_index;
+    for (int i = 2; i < argc; i++) {
+      if (is_equal(argv[i], "--files")) {
+        flag_index = i;
+        break;
+      }
+    }
+    for (int i = flag_index + 1; i < argc; i++) {
+      if (argv[i][0] == '-') break;
+      addresses[i - flag_index - 1] = argv[i];
+      addresses_count++;
+    }
+
+    return ok(grep(addresses_count, addresses, get_argument(argc, argv, "str"), get_flag(argc, argv, "c"), get_flag(argc, argv, "l")));
   }
 
   return result(3, "");
