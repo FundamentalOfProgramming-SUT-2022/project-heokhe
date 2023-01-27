@@ -9,30 +9,24 @@
 #include "utils.c"
 
 int create_file(char* address) {
+  address = remove_leading_slash(address);
+
   int len = strlen(address);
 
   char* current_address = malloc(sizeof(char) * len);
   char* segment = malloc(sizeof(char) * 100);
-  int segment_index = -1;
+  int segment_index = 0;
 
   for (int i = 0; i < len; i++) {
-    char current = *(address + i);
-    if (!current) break;
-
-    if (i == 0 && current != '/') return 2;
+    char current = address[i];
 
     if (current == '/') {
-      if (segment_index == 0 && !is_equal(segment, ROOT)) {
-        return 1;
-      }
-
       if (segment_index > 0) {
         strncat(current_address, "/", 1);
       }
 
       strncat(current_address, segment, strlen(segment));
-      struct stat st = { 0 };
-      if (!_exists(address)) {
+      if (!_exists(current_address)) {
         mkdir(current_address, 0700);
       }
 
@@ -44,8 +38,7 @@ int create_file(char* address) {
     }
   }
 
-  strncat(current_address, "/", 1);
-  strncat(current_address, segment, strlen(segment));
+  aprintf(current_address, "/%s", segment);
 
   // make the actual file (the final touch 😁)
   _touch(current_address);
