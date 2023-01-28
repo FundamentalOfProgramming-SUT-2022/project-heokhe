@@ -367,6 +367,51 @@ char* grep(int address_count, char* addresses[], char* pattern, bool count_only,
   return output;
 }
 
+char* compare(char* a, char* b) {
+  char* output = malloc(sizeof(char) * 10000000);
+
+  FILE* file_a = fopen(remove_leading_slash(a), "r");
+  FILE* file_b = fopen(remove_leading_slash(b), "r");
+  int i = 0;
+  int len_a, len_b;
+  char* line_a, * line_b;
+
+  while (true) {
+    line_a = fgetl(file_a);
+    line_b = fgetl(file_b);
+    len_a = strlen(line_a);
+    len_b = strlen(line_b);
+
+    if (len_a == 0 || len_b == 0) break;
+
+    if (!is_equal(line_a, line_b)) {
+      aprintf(output, "========= #%d =========\n%s\n%s\n", i + 1, line_a, line_b);
+    }
+
+    i++;
+  }
+
+
+  if (len_a != 0 || len_b != 0) {
+    FILE* larger_file = len_b == 0 ? file_a : file_b;
+    char* rest = malloc(sizeof(char) * 1000000);
+    char* line = len_b == 0 ? line_a : line_b;
+    int start = i, end = i;
+    while (true) {
+      if (strlen(line) == 0) break;
+      aprintf(rest, "%s\n", line);
+      line = fgetl(larger_file);
+      end++;
+    }
+    aprintf(output, ">>>>>>>>> #%d - #%d >>>>>>>>>\n%s", start + 1, end, rest);
+  }
+
+  fclose(file_a);
+  fclose(file_b);
+
+  return output;
+}
+
 char* handle(int argc, char* argv[]) {
   int arman_index = -1;
   for (int i = 0; i < argc; i++) {
@@ -499,6 +544,10 @@ char* handle(int argc, char* argv[]) {
     }
 
     return ok(grep(addresses_count, addresses, get_argument(argc, argv, "str"), get_flag(argc, argv, "c"), get_flag(argc, argv, "l")));
+  }
+
+  if (is_equal(command, "compare")) {
+    return ok(compare(argv[2], argv[3]));
   }
 
   return result(3, "");

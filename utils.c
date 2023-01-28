@@ -170,3 +170,14 @@ bool strincludes(char* haystack, char* needle) {
   }
   return false;
 }
+
+char* fgetl(FILE* file) {
+  char* line = malloc(sizeof(char) * 10000);
+  char c;
+  while (true) {
+    c = fgetc(file);
+    if (c == '\n' || c == EOF) break;
+    strncat(line, &c, 1);
+  }
+  return line;
+}
