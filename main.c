@@ -11,6 +11,8 @@
 int create_file(char* address) {
   address = remove_leading_slash(address);
 
+  if (_exists(address)) return 1;
+
   int len = strlen(address);
 
   char* current_address = malloc(sizeof(char) * len);
@@ -435,9 +437,12 @@ char* handle(int argc, char* argv[]) {
     if (!status) {
       return ok("");
     }
+    else if (status == 1) {
+      return result(1, "file already exists");
+    }
     else {
       // TODO: give an actual explanation
-      return result(2, "");
+      return result(status, "");
     }
   }
 
