@@ -227,11 +227,16 @@ char* tree(char* address, int depth, int max_depth) {
   return o;
 }
 
-int find(char* address, char* expression, int at, bool byword, bool only_count) {
+#define END_OF_FIND -2
+int* find(char* address, char* expression, int at, bool byword, bool only_count, bool all) {
   char* contents = cat(address);
   int len = strlen(contents), ex_len = strlen(expression);
   int index = -1, word_index = -1;
   int count = 0, matched_count = 0;
+
+  bool should_not_stop = only_count || all;
+  int* output = malloc(sizeof(int) * 1000);
+  int output_size = 0;
 
   bool begins_with_wildcard = false, ends_with_wildcard = false;
   if (expression[0] == '*') {
@@ -265,7 +270,14 @@ int find(char* address, char* expression, int at, bool byword, bool only_count) 
           word_index = w;
           count++;
           matched_count = 0;
-          if (!only_count && at == count - 1) {
+          if (all) {
+            int to_be_added = byword ? word_index : index;
+            if (output_size == 0 || output[output_size - 1] != to_be_added) {
+              output[output_size] = to_be_added;
+              output_size++;
+            }
+          }
+          if (!should_not_stop && at == count - 1) {
             break;
           }
         }
@@ -285,9 +297,19 @@ int find(char* address, char* expression, int at, bool byword, bool only_count) 
     }
   }
 
-  if (only_count) return count;
-  if (at != count - 1) return -1;
-  return byword ? word_index : index;
+  if (only_count) {
+    output[0] = count;
+    output[1] = END_OF_FIND;
+  }
+  else if (!should_not_stop) {
+    if (at != count - 1) output[0] = -1;
+    else output[0] = byword ? word_index : index;
+    output[1] = END_OF_FIND;
+  }
+  else {
+    output[output_size] = END_OF_FIND;
+  }
+  return output;
 }
 
 int replace(char* address, char* str1, char* str2, int at, bool all) {
@@ -301,7 +323,7 @@ int replace(char* address, char* str1, char* str2, int at, bool all) {
   }
 
   char* output = malloc(sizeof(char) * 1e6);
-  int index = find(address, str1, at, false, false);
+  int index = find(address, str1, at, false, false, false)[0];
   if (index == -1) return 1;
   char* contents = cat(address);
   int len = strlen(str1);
@@ -511,13 +533,16 @@ char* handle(int argc, char* argv[]) {
     if (is_equal(at, "")) at = "0";
     bool byword = get_flag(argc, argv, "byword");
     bool count = get_flag(argc, argv, "count");
-    int output = find(address, expression, atoi(at), byword, count);
-    if (output == -1) {
+    bool all = get_flag(argc, argv, "all");
+    int* output = find(address, expression, atoi(at), byword, count, all);
+    if (output[0] == -1) {
       return result(1, "not found");
     }
     else {
-      char s[1000];
-      sprintf(s, "%d", output);
+      char s[1000000];
+      for (int i = 0; output[i] != END_OF_FIND; i++) {
+        aprintf(s, "%d ", output[i]);
+      }
       return ok(s);
     }
   }
