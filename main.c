@@ -271,10 +271,10 @@ int find(char* address, char* expression, int at, bool byword, bool only_count) 
         }
       }
     }
-    // else if (matched_count > 0 && i && contents[i] == contents[i - 1]) {
-    //   printf("%d?\n", matched_count);
-    //   continue;
-    // }
+    // this makes the code be able to find "ab" in "aab"
+    else if (matched_count > 0 && contents[i] == contents[i - matched_count]) {
+      continue;
+    }
     else {
       matched_count = 0;
     }
