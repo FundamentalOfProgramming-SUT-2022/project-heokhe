@@ -436,6 +436,74 @@ char* compare(char* a, char* b) {
   return output;
 }
 
+char* format(char* code, int from, int to, int depth) {
+  char* indent = malloc(sizeof(char) * 1000);
+  for (int i = 0; i < depth; i++)
+    strncat(indent, "  ", 2);
+
+  char* output = malloc(sizeof(char) * 100000);
+
+  int balance = 0;
+  int starting_index = -1, ending_index = -1;
+  for (int i = from; !to || i <= to; i++) {
+    char c = code[i];
+    if (!c) break;
+
+    if (c == '{') {
+      balance++;
+      if (balance == 1) {
+        starting_index = i + 1;
+      }
+    }
+    else if (c == '}') {
+      balance--;
+      if (balance == 0) {
+        ending_index = i - 1;
+
+        while (true) {
+          int len2 = strlen(output);
+          if (output[len2 - 1] == '\n' || output[len2 - 1] == ' ') {
+            remove_index(output, len2 - 1);
+          }
+          else {
+            break;
+          }
+        }
+
+        int olen = strlen(output);
+        if (olen > 0 && output[olen - 1] == '}') {
+          aprintf(output, "\n%s", indent);
+        }
+        else if (olen > 0 && output[olen - 1] != ' ') {
+          aprintf(output, " ");
+        }
+        else {
+          aprintf(output, "%s", indent);
+        }
+
+        char* inner = format(code, starting_index, ending_index, depth + 1);
+        if (is_equal(inner, "")) {
+          aprintf(output, "{\n%s}", indent);
+        }
+        else {
+          aprintf(output, "{\n%s\n%s}", inner, indent);
+        }
+      }
+    }
+    else if (balance == 0) {
+      if (i == from) {
+        aprintf(output, "%s", indent);
+      }
+      if (code[i - 1] == '}') {
+        aprintf(output, "\n");
+        aprintf(output, "%s", indent);
+      }
+      strncat(output, &c, 1);
+    }
+  }
+  return output;
+}
+
 char* handle(int argc, char* argv[]) {
   int arman_index = -1;
   for (int i = 0; i < argc; i++) {
@@ -578,6 +646,14 @@ char* handle(int argc, char* argv[]) {
 
   if (is_equal(command, "compare")) {
     return ok(compare(argv[2], argv[3]));
+  }
+
+  if (is_equal(command, "format")) {
+    char* address = argv[2];
+    char* contents = cat(remove_leading_slash(address));
+    char* formatted_code = format(contents, 0, 0, 0);
+    write_with_history(address, formatted_code);
+    return ok("");
   }
 
   return result(3, "");
