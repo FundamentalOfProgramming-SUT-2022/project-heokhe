@@ -178,6 +178,14 @@ char* arman(int arman_index, int argc, char* argv[]) {
     right_argv[i] = argv[i + arman_index];
   }
 
+  if (
+    !is_equal(right_argv[0], "find") &&
+    !is_equal(right_argv[0], "insert") &&
+    !is_equal(right_argv[0], "grep")
+    ) {
+    return result(10, "right-hand side command doesn't accept --str");
+  }
+
   char* left_output = handle(left_argc, left_argv);
   if ((int)left_output[0] != 1) {
     return left_output;
