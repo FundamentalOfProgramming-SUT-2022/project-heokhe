@@ -17,12 +17,9 @@ void string_to_lines(char* string, int* line_count, char* array[]) {
     char c = string[i];
     if (c == '\n' || c == EOF || !c) {
       strcpy(array[line_index], line);
-      // move(line_index, 0);
-      // printw(" %4d  %s", line_index + 1, line);
       strcpy(line, "");
       if (c == EOF || !c) break;
       line_index++;
-      // if (line_index >= maxy - 2) break;
     }
     else {
       strncat(line, &c, 1);
