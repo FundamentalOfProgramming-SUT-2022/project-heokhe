@@ -57,6 +57,8 @@ int main() {
     printw(" %s ", mode_names[mode]);
     attroff(A_BOLD);
     attroff(COLOR_PAIR(1));
+    init_pair(2, COLOR_BLUE, COLOR_WHITE);
+    attron(COLOR_PAIR(2));
     printw(" ");
     if (strlen(address) == 0) {
       printw("(no open file)");
@@ -65,6 +67,7 @@ int main() {
       printw("%s", address);
     }
     printw(" ");
+    attroff(COLOR_PAIR(2));
 
     move(maxy - 1, 0);
     if (strlen(command) > 0) {
