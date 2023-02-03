@@ -156,9 +156,11 @@ int main() {
         pos.col = min(pos.col + 1, strlen(lines[pos.line]));
       }
       else if (ch == 's') {
-        pos.line++;
-        if (pos.line - starting_line >= maxy - 6) {
-          starting_line++;
+        if (pos.line < lines_count - 1) {
+          pos.line++;
+          if (pos.line - starting_line >= maxy - 6) {
+            starting_line++;
+          }
         }
         pos.col = min(pos.col, strlen(lines[pos.line]));
       }
