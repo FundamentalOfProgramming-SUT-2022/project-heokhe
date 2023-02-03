@@ -661,12 +661,12 @@ char* handle(int argc, char* argv[]) {
   return result(3, "");
 }
 
-int main(int argc, char* argv[]) {
-  char* res = handle(argc, argv);
-  int status = res[0] - 1; // status code starts from zero
-  remove_index(res, 0);
-  if (strlen(res)) {
-    printf("%s\n", res);
-  }
-  return status;
-}
+// int main(int argc, char* argv[]) {
+//   char* res = handle(argc, argv);
+//   int status = res[0] - 1; // status code starts from zero
+//   remove_index(res, 0);
+//   if (strlen(res)) {
+//     printf("%s\n", res);
+//   }
+//   return status;
+// }
