@@ -56,8 +56,15 @@ int main() {
 
     char ch = getch();
     if (ch == '\n') {
-      if (strlen(address) > 0 && (is_equal(command, ":undo") || is_equal(command, "u"))) {
-        undo(address);
+      if (strlen(address) > 0) {
+        if ((is_equal(command, ":undo") || is_equal(command, "u"))) {
+          undo(address);
+        }
+        else if (is_equal(command, ":format") || is_equal(command, "=")) {
+          char* contents = cat(remove_leading_slash(address));
+          char* formatted_code = format(contents, 0, 0, 0);
+          write_with_history(address, formatted_code);
+        }
       }
       char rest[100];
       sscanf(command, ":open %[^\n]s", rest);
