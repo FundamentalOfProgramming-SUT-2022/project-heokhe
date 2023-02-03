@@ -527,10 +527,7 @@ char* handle(int argc, char* argv[]) {
 
   char* command = argv[1];
   if (is_equal(command, "createfile")) {
-    if (!is_equal(argv[2], "--file")) {
-      return result(1, "invalid format");
-    }
-    char* address = argv[3];
+    char* address = get_argument(argc, argv, "file");
     int status = create_file(address);
     if (!status) {
       return ok("");
@@ -545,43 +542,40 @@ char* handle(int argc, char* argv[]) {
   }
 
   if (is_equal(command, "cat")) {
-    if (!is_equal(argv[2], "--file")) {
-      return result(1, "invalid format");
-    }
-    char* address = argv[3];
+    char* address = get_argument(argc, argv, "file");
     char* contents = cat(address);
     return ok(contents);
   }
 
   if (is_equal(command, "insert")) {
-    char* address = argv[3];
-    char* str = argv[5];
-    int* pos = parse_pos(argv[7]);
+    char* address = get_argument(argc, argv, "file");
+    char* str = get_argument(argc, argv, "str");
+    int* pos = parse_pos(get_argument(argc, argv, "pos"));
     insert(address, pos[0], pos[1], str);
     return ok("");
   }
 
   if (is_equal(command, "paste")) {
-    char* address = argv[3];
-    int* pos = parse_pos(argv[5]);
+    char* address = get_argument(argc, argv, "file");
+    int* pos = parse_pos(get_argument(argc, argv, "pos"));
     paste(address, pos[0], pos[1]);
     return ok("");
   }
 
   if (is_equal(command, "remove")) {
-    char* address = argv[3];
-    int* pos = parse_pos(argv[5]);
-    int size = atoi(argv[7]);
-    bool backward = is_equal(argv[8], "-b");
+    char* address = get_argument(argc, argv, "file");
+    int* pos = parse_pos(get_argument(argc, argv, "pos"));
+    int size = atoi(get_argument(argc, argv, "size"));
+    bool backward = get_flag(argc, argv, "b") || !get_flag(argc, argv, "f");
     removestr(address, pos[0], pos[1], size, backward);
     return ok("");
   }
 
   if (is_equal(command, "copy") || is_equal(command, "cut")) {
-    char* address = argv[3];
-    int* pos = parse_pos(argv[5]);
-    int size = atoi(argv[7]);
-    bool backward = is_equal(argv[8], "-b");
+    char* address = get_argument(argc, argv, "file");
+    int* pos = parse_pos(get_argument(argc, argv, "pos"));
+    int size = atoi(get_argument(argc, argv, "size"));
+    bool backward = get_flag(argc, argv, "b") || !get_flag(argc, argv, "f");
     if (is_equal(command, "copy")) {
       copy(address, pos[0], pos[1], size, backward);
     }
@@ -592,7 +586,7 @@ char* handle(int argc, char* argv[]) {
   }
 
   if (is_equal(command, "undo")) {
-    undo(argv[3]);
+    undo(get_argument(argc, argv, "file"));
     return ok("");
   }
 
