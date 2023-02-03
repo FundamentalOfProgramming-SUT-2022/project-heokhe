@@ -29,12 +29,40 @@ void string_to_lines(char* string, int* line_count, char* array[]) {
   *line_count = line_index + 1;
 }
 
+char* insert_char(char* string, int index, char ch) {
+  char* new_string = malloc(sizeof(char) * 10000);
+  for (int i = 0; i <= index - 1; i++) {
+    strncat(new_string, string + i, 1);
+  }
+  strncat(new_string, &ch, 1);
+  for (int i = index; i < strlen(string); i++) {
+    strncat(new_string, string + i, 1);
+  }
+  return new_string;
+}
+
+char* delete_char(char* string, int index) {
+  char* new_string = malloc(sizeof(char) * 10000);
+  for (int i = 0; i <= index - 1; i++) {
+    strncat(new_string, string + i, 1);
+  }
+  for (int i = index + 1; i < strlen(string); i++) {
+    strncat(new_string, string + i, 1);
+  }
+  return new_string;
+}
+
 struct Position {
   int line;
   int col;
 };
 
 int main() {
+  // char* test = "hello world";
+  // test = delete_char(test, 10);
+  // printf("%s", test);
+  // return 0;
+
   WINDOW* window = initscr();
   refresh();
   start_color();
@@ -164,8 +192,28 @@ int main() {
       else if (ch == 'a') {
         pos.col = max(pos.col - 1, 0);
       }
+      else if (ch == '\n') {
+        mode = INSERT;
+      }
       else if (ch == 27) {
         mode = NORMAL;
+      }
+    }
+    else if (mode == INSERT) {
+      move(pos.line - starting_line, pos.col + 7);
+      char ch = getch();
+      if (ch == 27) {
+        mode = VISUAL;
+      }
+      else if (ch == 127) {
+        changed = true;
+        lines[pos.line] = delete_char(lines[pos.line], pos.col - 1);
+        pos.col = max(pos.col - 1, 0);
+      }
+      else {
+        changed = true;
+        lines[pos.line] = insert_char(lines[pos.line], pos.col, ch);
+        pos.col = min(pos.col + 1, strlen(lines[pos.line]));
       }
     }
 
