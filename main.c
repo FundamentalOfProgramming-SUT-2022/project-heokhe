@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <string.h>
+#include <stdlib.h>
 #include "lib.c"
 
 enum Mode {
@@ -28,9 +29,25 @@ int main() {
     int maxy = getmaxy(window);
 
     if (strlen(address) > 0) {
-      move(0, 0);
+      clear();
       char* contents = cat(remove_leading_slash(address));
-      printw("%s", contents);
+      char* line = malloc(sizeof(char) * 10000);
+      int line_index = 0, i = 0;
+      while (true) {
+        char c = contents[i];
+        if (c == '\n' || c == EOF || !c) {
+          move(line_index, 0);
+          printw(" %4d  %s", line_index + 1, line);
+          strcpy(line, "");
+          if (c == EOF || !c) break;
+          line_index++;
+          if (line_index >= maxy - 2) break;
+        }
+        else {
+          strncat(line, &c, 1);
+        }
+        i++;
+      }
     }
 
     move(maxy - 2, 0);
