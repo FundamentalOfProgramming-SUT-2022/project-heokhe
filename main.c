@@ -159,6 +159,10 @@ int main() {
           char rest[100];
           sscanf(command, ":open %[^\n]s", rest);
           if (strlen(rest) > 0) {
+            if (strlen(address) > 0) {
+              write_with_history(address, lines_to_string(lines_count, lines));
+              changed = false;
+            }
             strcpy(address, rest);
             strcpy(contents, "");
             pos.line = 0;
