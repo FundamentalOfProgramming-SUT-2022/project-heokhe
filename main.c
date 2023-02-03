@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <string.h>
+#include "lib.c"
 
 enum Mode {
   NORMAL = 0,
@@ -19,11 +20,18 @@ int main() {
   clear();
 
   char command[100];
+  strcpy(command, "");
   char address[100];
 
   while (true) {
     int maxx = getmaxx(window);
     int maxy = getmaxy(window);
+
+    if (strlen(address) > 0) {
+      move(0, 0);
+      char* contents = cat(remove_leading_slash(address));
+      printw("%s", contents);
+    }
 
     move(maxy - 2, 0);
     init_pair(1, COLOR_WHITE, COLOR_BLUE);
@@ -42,7 +50,9 @@ int main() {
     printw(" ");
 
     move(maxy - 1, 0);
-    printw("%s", command);
+    if (strlen(command) > 0) {
+      printw("%s", command);
+    }
     char ch = getch();
     if (ch == '\n') {
       char rest[100];
@@ -51,6 +61,7 @@ int main() {
         strcpy(address, rest);
         clear();
       }
+      strcpy(command, "");
     }
     else if (ch == 127) {
       command[strlen(command) - 1] = '\0';
