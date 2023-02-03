@@ -53,8 +53,12 @@ int main() {
     if (strlen(command) > 0) {
       printw("%s", command);
     }
+
     char ch = getch();
     if (ch == '\n') {
+      if (strlen(address) > 0 && (is_equal(command, ":undo") || is_equal(command, "u"))) {
+        undo(address);
+      }
       char rest[100];
       sscanf(command, ":open %[^\n]s", rest);
       if (strlen(rest) > 0) {
