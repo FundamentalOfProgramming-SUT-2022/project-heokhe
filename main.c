@@ -29,6 +29,17 @@ void string_to_lines(char* string, int* line_count, char* array[]) {
   *line_count = line_index + 1;
 }
 
+char* lines_to_string(int lines_count, char* lines[]) {
+  char* string = malloc(sizeof(char) * 1000000);
+  for (int i = 0; i < lines_count; i++) {
+    if (i > 0) {
+      aprintf(string, "\n");
+    }
+    aprintf(string, "%s", lines[i]);
+  }
+  return string;
+}
+
 char* insert_char(char* string, int index, char ch) {
   char* new_string = malloc(sizeof(char) * 10000);
   for (int i = 0; i <= index - 1; i++) {
@@ -58,11 +69,6 @@ struct Position {
 };
 
 int main() {
-  // char* test = "hello world";
-  // test = delete_char(test, 10);
-  // printf("%s", test);
-  // return 0;
-
   WINDOW* window = initscr();
   refresh();
   start_color();
@@ -144,6 +150,10 @@ int main() {
               char* contents = cat(remove_leading_slash(address));
               char* formatted_code = format(contents, 0, 0, 0);
               write_with_history(address, formatted_code);
+            }
+            else if (is_equal(command, ":save")) {
+              write_with_history(address, lines_to_string(lines_count, lines));
+              changed = false;
             }
           }
           char rest[100];
