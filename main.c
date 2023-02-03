@@ -32,6 +32,11 @@ void string_to_lines(char* string, int* line_count, char* array[]) {
   *line_count = line_index + 1;
 }
 
+struct Position {
+  int line;
+  int col;
+};
+
 int main() {
   WINDOW* window = initscr();
   refresh();
@@ -40,6 +45,8 @@ int main() {
   clear();
 
   enum Mode mode = NORMAL;
+  bool changed = false;
+  struct Position pos = { 0, 0 };
 
   char command[100];
   strcpy(command, "");
@@ -52,6 +59,7 @@ int main() {
     lines[i] = malloc(sizeof(char) * 10000);
   }
   int lines_count = 0;
+  int starting_line = 0;
 
   while (true) {
     int maxx = getmaxx(window);
@@ -63,8 +71,8 @@ int main() {
         strcpy(contents, cat(remove_leading_slash(address)));
         string_to_lines(contents, &lines_count, lines);
       }
-      for (int i = 0; i < min(lines_count, maxy - 2); i++) {
-        move(i, 0);
+      for (int i = starting_line; i < min(lines_count, starting_line + maxy - 2); i++) {
+        move(i - starting_line, 0);
         printw(" %4d  %s", i + 1, lines[i]);
       }
     }
@@ -86,6 +94,9 @@ int main() {
       printw("%s", address);
     }
     printw(" ");
+    if (changed) {
+      printf("+ ");
+    }
     attroff(COLOR_PAIR(2));
 
     move(maxy - 1, 0);
@@ -96,41 +107,66 @@ int main() {
     if (mode == NORMAL) {
       char ch = getch();
       if (ch == '\n') {
-        if (strlen(address) > 0) {
-          if ((is_equal(command, ":undo") || is_equal(command, "u"))) {
-            undo(address);
-          }
-          else if (is_equal(command, ":format") || is_equal(command, "=")) {
-            char* contents = cat(remove_leading_slash(address));
-            char* formatted_code = format(contents, 0, 0, 0);
-            write_with_history(address, formatted_code);
-          }
+        if (!strlen(command)) {
+          mode = VISUAL;
         }
-        char rest[100];
-        sscanf(command, ":open %[^\n]s", rest);
-        if (strlen(rest) > 0) {
-          strcpy(address, rest);
-          strcpy(contents, "");
-          clear();
+        else {
+          if (strlen(address) > 0) {
+            if ((is_equal(command, ":undo") || is_equal(command, "u"))) {
+              undo(address);
+            }
+            else if (is_equal(command, ":format") || is_equal(command, "=")) {
+              char* contents = cat(remove_leading_slash(address));
+              char* formatted_code = format(contents, 0, 0, 0);
+              write_with_history(address, formatted_code);
+            }
+          }
+          char rest[100];
+          sscanf(command, ":open %[^\n]s", rest);
+          if (strlen(rest) > 0) {
+            strcpy(address, rest);
+            strcpy(contents, "");
+            pos.line = 0;
+            pos.col = 0;
+            clear();
+          }
+          strcpy(command, "");
         }
-        strcpy(command, "");
       }
       else if (ch == 127) {
         command[strlen(command) - 1] = '\0';
         clear(); // don't know why this works
       }
-      else if (ch == 27 && strlen(address) > 0) {
-        mode = INSERT;
-      }
       else {
         strncat(command, &ch, 1);
       }
     }
-    else if (mode == INSERT) {
-      move(0, 0);
+    else if (mode == VISUAL) {
+      move(pos.line - starting_line, pos.col + 7);
       char ch = getch();
-      if (ch == 27) {
-        mode = INSERT;
+      if (ch == 'w') {
+        pos.line--;
+        if (pos.line - starting_line < 4) {
+          starting_line = max(starting_line - 1, 0);
+        }
+        if (pos.line < 0) pos.line = 0;
+        pos.col = min(pos.col, strlen(lines[pos.line]));
+      }
+      else if (ch == 'd') {
+        pos.col = min(pos.col + 1, strlen(lines[pos.line]));
+      }
+      else if (ch == 's') {
+        pos.line++;
+        if (pos.line - starting_line >= maxy - 6) {
+          starting_line++;
+        }
+        pos.col = min(pos.col, strlen(lines[pos.line]));
+      }
+      else if (ch == 'a') {
+        pos.col = max(pos.col - 1, 0);
+      }
+      else if (ch == 27) {
+        mode = NORMAL;
       }
     }
 

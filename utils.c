@@ -2,6 +2,7 @@
 #include "constants.c"
 
 #define min(x, y) (x > y ? y : x)
+#define max(x, y) (x + y - min(x, y))
 
 bool is_equal(char* a, char* b) {
   return !strcmp(a, b);
