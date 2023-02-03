@@ -1,6 +1,8 @@
 #include <stdbool.h>
 #include "constants.c"
 
+#define min(x, y) (x > y ? y : x)
+
 bool is_equal(char* a, char* b) {
   return !strcmp(a, b);
 }
