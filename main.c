@@ -92,7 +92,7 @@ int main() {
     }
     printw(" ");
     if (changed) {
-      printf("+ ");
+      printw("+ ");
     }
     attroff(COLOR_PAIR(2));
 
