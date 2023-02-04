@@ -106,11 +106,16 @@ int main() {
         string_to_lines(contents, &lines_count, lines);
       }
       offsets[0] = 0;
-      for (int i = starting_line; i < min(lines_count, starting_line + maxy - 2); i++) {
+      for (int i = starting_line;; i++) {
+        if (i - starting_line >= maxy - 2) break;
+        if (i >= lines_count) break;
+
         int len = strlen(lines[i]);
         int j;
         for (j = 0; j <= len; j += code_width) {
-          move(i - starting_line + offsets[i] + j / code_width, 0);
+          int real_line = i - starting_line + offsets[i] + j / code_width;
+          if (real_line >= maxy - 2) break;
+          move(real_line, 0);
           if (i == pos.line) attron(COLOR_PAIR(3));
           if (j == 0) {
             printw(" %4d  ", i + 1);
