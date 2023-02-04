@@ -155,6 +155,17 @@ int main() {
               write_with_history(address, lines_to_string(lines_count, lines));
               changed = false;
             }
+            else if (strlen(address) > 0) {
+              char save_destination[100];
+              sscanf(command, ":saveas %[^\n]s", save_destination);
+              if (strlen(save_destination) > 0) {
+                if (!_exists(save_destination)) {
+                  create_file(save_destination);
+                }
+                write_with_history(save_destination, lines_to_string(lines_count, lines));
+                changed = false;
+              }
+            }
           }
           char rest[100];
           sscanf(command, ":open %[^\n]s", rest);
