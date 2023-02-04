@@ -86,6 +86,7 @@ int main() {
   strcpy(address, "");
   char* contents = malloc(sizeof(char) * 1000000);
   char* lines[10000];
+  int offsets[10000];
   for (int i = 0; i < 10000; i++) {
     lines[i] = malloc(sizeof(char) * 10000);
   }
@@ -95,16 +96,32 @@ int main() {
   while (true) {
     int maxx = getmaxx(window);
     int maxy = getmaxy(window);
+    int code_width = maxx - 7;
 
+    init_pair(3, COLOR_YELLOW, COLOR_BLACK);
     if (strlen(address) > 0) {
       clear();
       if (strlen(contents) == 0) {
         strcpy(contents, cat(remove_leading_slash(address)));
         string_to_lines(contents, &lines_count, lines);
       }
+      offsets[0] = 0;
       for (int i = starting_line; i < min(lines_count, starting_line + maxy - 2); i++) {
-        move(i - starting_line, 0);
-        printw(" %4d  %s", i + 1, lines[i]);
+        int len = strlen(lines[i]);
+        int j;
+        for (j = 0; j <= len; j += code_width) {
+          move(i - starting_line + offsets[i] + j / code_width, 0);
+          if (i == pos.line) attron(COLOR_PAIR(3));
+          if (j == 0) {
+            printw(" %4d  ", i + 1);
+          }
+          else {
+            printw("       ");
+          }
+          attroff(COLOR_PAIR(3));
+          printw("%s", lines[i] + j);
+        }
+        offsets[i + 1] = offsets[i] + j / code_width - 1;
       }
     }
 
@@ -191,109 +208,125 @@ int main() {
         strncat(command, &ch, 1);
       }
     }
-    else if (mode == VISUAL) {
-      move(pos.line - starting_line, pos.col + 7);
+    else {
+      int real_line = pos.line + offsets[pos.line] + pos.col / code_width;
+      move(real_line - starting_line, (pos.col % code_width) + 7);
+
       char ch = getch();
-      if (ch == 'w') {
-        pos.line--;
-        if (pos.line - starting_line < 4) {
-          starting_line = max(starting_line - 1, 0);
-        }
-        if (pos.line < 0) pos.line = 0;
-        pos.col = min(pos.col, strlen(lines[pos.line]));
-      }
-      else if (ch == 'd') {
-        pos.col = min(pos.col + 1, strlen(lines[pos.line]));
-      }
-      else if (ch == 's') {
-        if (pos.line < lines_count - 1) {
-          pos.line++;
-          if (pos.line - starting_line >= maxy - 6) {
-            starting_line++;
+      if (mode == VISUAL) {
+        if (ch == 'w') {
+          if (pos.col < code_width) {
+            pos.line = max(pos.line - 1, 0);
+            pos.col = min(pos.col, strlen(lines[pos.line]));
+          }
+          else {
+            pos.col -= code_width;
           }
         }
-        pos.col = min(pos.col, strlen(lines[pos.line]));
-      }
-      else if (ch == 'a') {
-        pos.col = max(pos.col - 1, 0);
-      }
-      else if (ch == 'D') {
-        char* line = lines[pos.line];
-        int offset;
-        for (offset = 1;; offset++) {
-          if (pos.col + offset >= strlen(line)) break;
-          if (line[pos.col + offset != ' '] && line[pos.col + offset - 1] == ' ') {
-            break;
+        else if (ch == 'd') {
+          pos.col = min(pos.col + 1, strlen(lines[pos.line]));
+        }
+        else if (ch == 's') {
+          int total = strlen(lines[pos.line]) / code_width;
+          int current = (pos.col + 1) / code_width;
+          if (current < total) {
+            pos.col = min(pos.col + code_width, strlen(lines[pos.line]));
+          }
+          else {
+            pos.line = min(pos.line + 1, lines_count - 1);
+            pos.col = min(pos.col % code_width, strlen(lines[pos.line]));
           }
         }
-        pos.col = min(pos.col + offset, strlen(line));
-      }
-      else if (ch == 'A') {
-        char* line = lines[pos.line];
-        int offset;
-        for (offset = 1;; offset++) {
-          if (pos.col - offset <= 0) break;
-          if (line[pos.col - offset - 1 != ' '] && line[pos.col - offset] == ' ') {
-            break;
-          }
-        }
-        pos.col = max(pos.col - offset, 0);
-      }
-      else if (ch == '\n') {
-        mode = INSERT;
-      }
-      else if (ch == 27) {
-        mode = NORMAL;
-      }
-    }
-    else if (mode == INSERT) {
-      move(pos.line - starting_line, pos.col + 7);
-      char ch = getch();
-      if (!changed && ch != 27) changed = true;
-      if (ch == 27) {
-        mode = VISUAL;
-      }
-      else if (ch == 127) {
-        if (is_equal(lines[pos.line], "")) {
-          if (pos.line > 0) {
-            for (int i = pos.line; i < lines_count - 1; i++) {
-              lines[i] = lines[i + 1];
-            }
-            lines_count--;
-            pos.line--;
-            pos.col = strlen(lines[pos.line]);
-          }
-        }
-        else {
-          lines[pos.line] = delete_char(lines[pos.line], pos.col - 1);
+        else if (ch == 'a') {
           pos.col = max(pos.col - 1, 0);
         }
+        else if (ch == 'D') {
+          char* line = lines[pos.line];
+          int offset;
+          for (offset = 1;; offset++) {
+            if (pos.col + offset >= strlen(line)) break;
+            if (line[pos.col + offset != ' '] && line[pos.col + offset - 1] == ' ') {
+              break;
+            }
+          }
+          pos.col = min(pos.col + offset, strlen(line));
+        }
+        else if (ch == 'A') {
+          char* line = lines[pos.line];
+          int offset;
+          for (offset = 1;; offset++) {
+            if (pos.col - offset <= 0) break;
+            if (line[pos.col - offset - 1 != ' '] && line[pos.col - offset] == ' ') {
+              break;
+            }
+          }
+          pos.col = max(pos.col - offset, 0);
+        }
+        else if (ch == '\n') {
+          mode = INSERT;
+        }
+        else if (ch == 27) {
+          mode = NORMAL;
+        }
       }
-      else if (ch == '\n') {
-        for (int i = lines_count - 1; i >= pos.line; i--) {
-          lines[i + 1] = lines[i];
+      else if (mode == INSERT) {
+        // char ch = getch();
+        if (!changed && ch != 27) changed = true;
+        if (ch == 27) {
+          mode = VISUAL;
         }
-        lines[pos.line + 1] = malloc(sizeof(char) * 10000);
-        lines_count++;
-        for (int i = pos.col;; i++) {
-          char c = lines[pos.line][i];
-          if (!c) break;
-          strncat(lines[pos.line + 1], &c, 1);
+        else if (ch == 127) {
+          if (is_equal(lines[pos.line], "")) {
+            if (pos.line > 0) {
+              for (int i = pos.line; i < lines_count - 1; i++) {
+                lines[i] = lines[i + 1];
+              }
+              lines_count--;
+              pos.line--;
+              pos.col = strlen(lines[pos.line]);
+            }
+          }
+          else {
+            lines[pos.line] = delete_char(lines[pos.line], pos.col - 1);
+            pos.col = max(pos.col - 1, 0);
+          }
         }
-        char* new_line = malloc(sizeof(char) * 10000);
-        for (int i = 0; i < pos.col; i++) {
-          new_line[i] = lines[pos.line][i];
+        else if (ch == '\n') {
+          for (int i = lines_count - 1; i >= pos.line; i--) {
+            lines[i + 1] = lines[i];
+          }
+          lines[pos.line + 1] = malloc(sizeof(char) * 10000);
+          lines_count++;
+          for (int i = pos.col;; i++) {
+            char c = lines[pos.line][i];
+            if (!c) break;
+            strncat(lines[pos.line + 1], &c, 1);
+          }
+          char* new_line = malloc(sizeof(char) * 10000);
+          for (int i = 0; i < pos.col; i++) {
+            new_line[i] = lines[pos.line][i];
+          }
+          lines[pos.line] = new_line;
         }
-        lines[pos.line] = new_line;
+        else {
+          lines[pos.line] = insert_char(lines[pos.line], pos.col, ch);
+          pos.col = min(pos.col + 1, strlen(lines[pos.line]));
+        }
       }
-      else {
-        lines[pos.line] = insert_char(lines[pos.line], pos.col, ch);
-        pos.col = min(pos.col + 1, strlen(lines[pos.line]));
+
+      int next_real_line = pos.line + offsets[pos.line] + pos.col / code_width;
+      if (next_real_line > real_line) {
+        while (next_real_line - starting_line >= maxy - 6) {
+          starting_line++;
+        }
+      }
+      else if (next_real_line < real_line) {
+        while (next_real_line - starting_line <= 4 && starting_line > 0) {
+          starting_line--;
+        }
       }
     }
-
     refresh();
   }
-
   endwin();
 }
