@@ -249,16 +249,44 @@ int main() {
     else if (mode == INSERT) {
       move(pos.line - starting_line, pos.col + 7);
       char ch = getch();
+      if (!changed && ch != 27) changed = true;
       if (ch == 27) {
         mode = VISUAL;
       }
       else if (ch == 127) {
-        changed = true;
-        lines[pos.line] = delete_char(lines[pos.line], pos.col - 1);
-        pos.col = max(pos.col - 1, 0);
+        if (is_equal(lines[pos.line], "")) {
+          if (pos.line > 0) {
+            for (int i = pos.line; i < lines_count - 1; i++) {
+              lines[i] = lines[i + 1];
+            }
+            lines_count--;
+            pos.line--;
+            pos.col = strlen(lines[pos.line]);
+          }
+        }
+        else {
+          lines[pos.line] = delete_char(lines[pos.line], pos.col - 1);
+          pos.col = max(pos.col - 1, 0);
+        }
+      }
+      else if (ch == '\n') {
+        for (int i = lines_count - 1; i >= pos.line; i--) {
+          lines[i + 1] = lines[i];
+        }
+        lines[pos.line + 1] = malloc(sizeof(char) * 10000);
+        lines_count++;
+        for (int i = pos.col;; i++) {
+          char c = lines[pos.line][i];
+          if (!c) break;
+          strncat(lines[pos.line + 1], &c, 1);
+        }
+        char* new_line = malloc(sizeof(char) * 10000);
+        for (int i = 0; i < pos.col; i++) {
+          new_line[i] = lines[pos.line][i];
+        }
+        lines[pos.line] = new_line;
       }
       else {
-        changed = true;
         lines[pos.line] = insert_char(lines[pos.line], pos.col, ch);
         pos.col = min(pos.col + 1, strlen(lines[pos.line]));
       }
