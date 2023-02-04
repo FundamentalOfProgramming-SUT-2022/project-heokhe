@@ -217,6 +217,28 @@ int main() {
       else if (ch == 'a') {
         pos.col = max(pos.col - 1, 0);
       }
+      else if (ch == 'D') {
+        char* line = lines[pos.line];
+        int offset;
+        for (offset = 1;; offset++) {
+          if (pos.col + offset >= strlen(line)) break;
+          if (line[pos.col + offset != ' '] && line[pos.col + offset - 1] == ' ') {
+            break;
+          }
+        }
+        pos.col = min(pos.col + offset, strlen(line));
+      }
+      else if (ch == 'A') {
+        char* line = lines[pos.line];
+        int offset;
+        for (offset = 1;; offset++) {
+          if (pos.col - offset <= 0) break;
+          if (line[pos.col - offset - 1 != ' '] && line[pos.col - offset] == ' ') {
+            break;
+          }
+        }
+        pos.col = max(pos.col - offset, 0);
+      }
       else if (ch == '\n') {
         mode = INSERT;
       }
